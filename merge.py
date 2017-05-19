@@ -27,6 +27,7 @@ Up to you, just let me know
 
 import time
 import pandas as pd
+import numpy as np
 import os
 import json
 import re
@@ -146,32 +147,32 @@ def parse_name(file_path):
 			file_metadata["survey_type"] = "other"
 		return(file_metadata)
 	
-	#TODO: Once all the files are imported with the new names use this block remove the previous if and keep only this block
-	else:
-		file_metadata = {}
-		reg = re.compile('[^_]+')
-		matches = re.findall(reg,file_name)
-		try:
-			file_metadata["country"] = matches[0]
-			survey_type = matches[1]
-			if survey_type == "HR":
-				file_metadata["survey_type"] = "households"
-			elif survey_type == "IR":
-				file_metadata["survey_type"] = "women"
-			elif survey_type == "MR":
-				file_metadata["survey_type"] = "men"
-			elif survey_type == "MR":
-				file_metadata["survey_type"] = "hiv_test"
-			else: 
-				file_metadata["survey_type"] = "other"
+	# #TODO: Once all the files are imported with the new names use this block remove the previous if and keep only this block
+	# else:
+	# 	file_metadata = {}
+	# 	reg = re.compile('[^_]+')
+	# 	matches = re.findall(reg,file_name)
+	# 	try:
+	# 		file_metadata["country"] = matches[0]
+	# 		survey_type = matches[1]
+	# 		if survey_type == "HR":
+	# 			file_metadata["survey_type"] = "households"
+	# 		elif survey_type == "IR":
+	# 			file_metadata["survey_type"] = "women"
+	# 		elif survey_type == "MR":
+	# 			file_metadata["survey_type"] = "men"
+	# 		elif survey_type == "MR":
+	# 			file_metadata["survey_type"] = "hiv_test"
+	# 		else: 
+	# 			file_metadata["survey_type"] = "other"
 
-			return(file_metadata)
-		except KeyError: #It means the file is not correctly formatted
-			raise InvalidSurveyFileName()
-		except IndexError:
-			pass
-			# raise InvalidSurveyFileName()
-			print("here")
+	# 		return(file_metadata)
+	# 	except KeyError: #It means the file is not correctly formatted
+	# 		raise InvalidSurveyFileName()
+	# 	except IndexError:
+	# 		pass
+	# 		# raise InvalidSurveyFileName()
+	# 		print("here")
 
 def parse_names(paths):
 	"""Takes a list of file path and returns a dictionnary of metadata dictionnary.
@@ -344,6 +345,46 @@ def write_log(path,string):
 	name of file will be log_date_country.txt
 	"""
 
+
+
+
+def add_labels(df,dic_labels):
+	""" Takes a dataframe imported from stata and add back its categorical labels
+	Input: - df, as read by pd.io.stata.StataReader
+		   - json_names: category names file 
+
+	"""
+	new = pd.DataFrame.from_dict({col: series.apply(lambda x: dic_labels[col][x] if x in dic_labels[col].keys() else np.nan)
+                             if col in dic_labels.keys() else series
+                             for col, series in df.iteritems()})
+	
+	reurn(new)
+
+
+
+def read_stata(path):
+	#Create reader
+	try:
+		#Trying to read labels
+		stata_reader = pd.io.stata.StataReader(path)
+		households_data = stata_reader.read(convert_categoricals=True)
+		stata_reader.close()
+	except (AttributeError, ValueError):#If catsgorical variables are not properly structured, reading separately then merging
+		stata_reader = pd.io.stata.StataReader(path)
+		households_data = stata_reader.read(convert_categoricals=False)
+		value_labels = stata_reader.value_labels() #returns dict of {var_name: {value:label}}
+		households_data = add_labels(households_data,value_labels)
+		stata_reader.close()
+		# households_data = add_labels(households_data,value_labels)
+	return households_data
+
+
+p = "/Users/malo/Documents/Projects/HIV-xwas/shared_with_desktop/08Nigeria/NGIR52FL.dta"
+print read_stata(p)
+
+
+
+
 def test():
 	paths = explore_dir("/Users/malo/Documents/Projects/HIV-xwas/shared_with_desktop", extensions=[".DTA",".dta"])
 	parsed_names = parse_names(paths)
@@ -354,26 +395,28 @@ def test():
 		print "Merging %s, %s file to merge ..." % (country, len(households_paths))
 		i = 1
 		households_merged = pd.DataFrame()
+		all_labels = {}
 		for households_path in households_paths:
 			print("...reading file %s") % i
 			# households_data = pd.read_stata(households_path,convert_categoricals=False) #losing categorical value. Files are not clean.
 			try:
 				stata_reader = pd.io.stata.StataReader(households_path)
 				households_data = stata_reader.read(convert_categoricals=False)
-				value_labels = stata_reader.value_labels()
+				value_labels = stata_reader.value_labels() #returns dict of {var_name: {value:label}}
 				stata_reader.close()
-				print households_data.columns
-				print value_labels
-				value_labels.to_json("temp/vlabels_"+str(country)+"_"+str(i))
+				all_labels[country + str(i)] = value_labels
+				households_data = add_labels(df,dic_labels)
+				# value_labels.to_json("temp/vlabels_"+str(country)+"_"+str(i))
 			except AttributeError:
 				print "no labels extracted"
 			print("...merging file %s") % i
 			households_merged = pd.concat([households_merged,households_data], axis=0, ignore_index=True)
 			i += 1
-		print households_merged.columns
+		# print households_merged.columns
+	return(all_labels)
 
 
-test()
+# all_labels = test()
 
 def test2():
 	paths = explore_dir("/Users/malo/Documents/Projects/HIV-xwas/shared_with_desktop", extensions=[".DTA",".dta"])
@@ -432,6 +475,16 @@ def sanity_checks():
 
 
 
+
+# TODO: each survey (i.e. each folder) contains a unique set of individual. In other words there is no overlap of the data. So we can merge Country/Survey by survey.
+# TODO: Stats transfer -> we have it
+# Labels -> trim spaces and put everything in lower cases
+# start with women and men
+# rows = individuals
+#Merge one block without the labels and column names/. Spss format
+
+#Men years are MV007 -> careful
+#When stacking men and women -> remove the "M"
 
 
 
