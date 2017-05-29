@@ -31,6 +31,7 @@ import numpy as np
 import os
 import json
 import re
+import pandas.rpy.common as com
 
 #visited does not work if folder and subfolder have same name
 #Have a path that is popped
@@ -384,8 +385,20 @@ print read_stata(p)
 
 
 
-
 def test():
+	paths = explore_dir("/Users/malo/Documents/Projects/HIV-xwas/shared_with_desktop/_98Niger", extensions=[".DTA",".dta"])
+	parsed_names = parse_names(paths)
+	l = []
+	for path in paths:
+		w = com.robj.r('foreign::read.spss("%s", to.data.frame=TRUE)' % path)
+		w = com.convert_robj(w)
+		l.append(w)
+	for f in l:
+		print f.head()
+
+
+
+def test2():
 	paths = explore_dir("/Users/malo/Documents/Projects/HIV-xwas/shared_with_desktop", extensions=[".DTA",".dta"])
 	parsed_names = parse_names(paths)
 	by_country = get_paths_by_country(parsed_names)
@@ -418,7 +431,7 @@ def test():
 
 # all_labels = test()
 
-def test2():
+def test3():
 	paths = explore_dir("/Users/malo/Documents/Projects/HIV-xwas/shared_with_desktop", extensions=[".DTA",".dta"])
 
 
