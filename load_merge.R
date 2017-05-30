@@ -4,6 +4,9 @@
 # devtools::install_github("mkuhn/dict")
 
 
+#install.packages("foreign")
+#install.packages("tidyverse")
+
 library(foreign)
 # library(dict)
 library(tidyr)
@@ -15,61 +18,12 @@ library(tidyr)
 ### otherwise: fix
 
 
-
-
-
 #Output: one table, individual level. + one dict of names for the column names.
 
 #Use cases:
   # ML use case -> columnar
   # Other -> mongo db? simple db?
 
-
-########- --------------- Load files
-
-
-#Include AR here from cotes divoire (HIV)
-
-
-
-
-
-#BR
-# load file (with category labels)
-list_BR <- read.spss("NIBR22FL.SAV", to.data.frame=FALSE, use.value.labels=TRUE)
-# convert list to data frame
-data_BR <- as.data.frame(list_BR)
-# copy all variable (column) labels in separated list
-names_BR <- attr(list_BR, "variable.labels")
-# names(data_BR) <- names_BR
-
-#HR: household
-list_HR <- read.spss("NIHR22FL.SAV", to.data.frame=FALSE, use.value.labels=TRUE)
-# convert list to data frame
-data_HR <- as.data.frame(list_HR)
-# copy all variable (column) labels in separated list
-names_HR <- attr(list_HR, "variable.labels")
-# names(data_HR) <- names_HR
-
-#IR: women
-list_IR <- read.spss("NIIR22FL.SAV", to.data.frame=FALSE, use.value.labels=TRUE)
-# convert list to data frame
-data_IR <- as.data.frame(list_IR)
-# copy all variable (column) labels in separated list
-names_IR <- attr(list_IR, "variable.labels")
-# names(data_IR) <- names_IR
-
-View(data_IR)
-
-class(names_IR)
-
-#MR: men
-list_MR <- read.spss("NIMR21FL.SAV", to.data.frame=FALSE, use.value.labels=TRUE)
-# convert list to data frame
-data_MR <- as.data.frame(list_MR)
-# copy all variable (column) labels in separated list
-names_MR <- attr(list_MR, "variable.labels")
-# names(data_MR) <- names_MR
 
 # Function definitions - data load ---------------------------------------------------------------------
 
@@ -156,52 +110,21 @@ create_merge_id <- function (survey_data){
 }
 
 
-mr@col_names[1:10]
-hr@col_names[1:10]
-ir@col_names[1:10]
-
-
-# 
-# list_data <- read.spss("_92Niger/NIBR22FL.SAV", to.data.frame=FALSE, use.value.labels=TRUE)
-# # convert list to data frame
-# survey_data <- as.data.frame(list_data)
-# # copy all variable (column) labels in separated list
-# names_survey <- attr(list_data, "variable.labels")
-# names_survey <- attr(list_data, "variable.labels")
-# metadata <- parse_name("_92Niger/NIBR22FL.SAV")
-# out <- new("survey_data",survey_type=unlist(unname(metadata["type"])), country=unlist(unname(metadata["country"])), col_names=names_survey, data=survey_data)
-# 
-# View(survey_data)
-# year = get_start_year(out@data, out@survey_type)
-# 
-# load_data("_92Niger/NIBR22FL.SAV")
-# ### PB: survey_type = year -> old names are used here
-# 
-# 
-
-
 # Go through all files, read spss and attempt a merge-------
 
-
-#Add exception handing
-#Add stats
-
-#like year, type, unique or not
-
-a <- c()
-a <- rep(NA, 100000)
-
-for (i in 1:100000){
-  a[i] = 1
-}
-
-
-
+#Malo @local
 working_dir = "~/Documents/Projects/HIV-xwas/shared_with_desktop"
+#Malo @server
+working_dir = 
+
+
 setwd(working_dir)
 
-lkf <- function(d,p) names(d)[grep(p,names(d))]
-df <- data.frame()
+
+
+
+#lkf <- function(d,p) names(d)[grep(p,names(d))]
+#df <- data.frame()
 countries <- list.files(recursive = FALSE)
 
 #This will be used to count the files and generate some stats
