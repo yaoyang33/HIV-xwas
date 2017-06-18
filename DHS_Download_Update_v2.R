@@ -247,8 +247,10 @@ for ( j in seq( length( country.numbers ) ) ){
 		select.tabletype <- grep( tabletype , archive.links.all, ignore.case = TRUE)
 		live.links.all <-  unlist(archive.links[ select.tabletype ] )
 		this_dir_live <- paste0( dir.live , this.name , "/" , this.title )
-		if (!dir.exists(this_dir_live)) {
-		  dir.create(this_dir_live)
+		if (length(live.links.all) != 0) {
+		  if (!dir.exists(this_dir_live)) {
+		    dir.create(this_dir_live)
+		  }
 		}
 		
 		# find the zip files in the local folder and DHS server
